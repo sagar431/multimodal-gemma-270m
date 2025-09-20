@@ -97,11 +97,6 @@ temp/
 
 # COCO dataset images
 data/cache/images/
-*.jpg
-*.jpeg
-*.png
-*.bmp
-*.tiff
 
 # Config overrides
 local_configs/
