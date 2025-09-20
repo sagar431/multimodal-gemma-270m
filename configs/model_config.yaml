@@ -1,0 +1,40 @@
+# Model Configuration
+model:
+  # Base models
+  gemma_model_name: "google/gemma-3-270m"  # 270M parameter model - fast training on A100
+  vision_model_name: "openai/clip-vit-large-patch14"
+
+  # Model settings - vision-language only
+  projector_hidden_dim: 2048  # Larger projection for better alignment
+  
+  # LoRA configuration - optimized for multimodal
+  lora:
+    r: 64          # Higher rank for better multimodal understanding
+    alpha: 128     # Higher alpha for better learning
+    dropout: 0.1   # Slightly higher dropout for regularization
+    target_modules:
+      - "q_proj"
+      - "v_proj"
+      - "k_proj"
+      - "o_proj"
+      - "gate_proj"
+      - "up_proj"
+      - "down_proj"
+  
+  # Quantization
+  use_4bit: true
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_quant_type: "nf4"
+  use_nested_quant: false
+
+# Tokenizer settings
+tokenizer:
+  padding_side: "right"
+  truncation: true
+  max_length: 512
+  add_special_tokens: true
+
+# Special tokens
+special_tokens:
+  image_token: "<image>"
+  pad_token: "<pad>"

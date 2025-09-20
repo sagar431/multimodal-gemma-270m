@@ -1,0 +1,12 @@
+torch>=2.0.0
+torchvision
+transformers>=4.36.0
+accelerate
+bitsandbytes
+peft>=0.6.0
+lightning>=2.0.0
+gradio>=4.0.0
+pillow
+huggingface-hub
+pyyaml
+omegaconf

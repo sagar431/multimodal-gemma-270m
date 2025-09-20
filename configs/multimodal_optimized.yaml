@@ -1,0 +1,149 @@
+# Optimized configuration for Gemma-270M multimodal training
+# This addresses previous inference quality issues
+
+# Model Configuration - Optimized for Multimodal
+model:
+  gemma_model_name: "google/gemma-3-270m"
+  vision_model_name: "openai/clip-vit-large-patch14"
+  audio_model_name: "openai/whisper-small"
+
+  enable_audio: false
+  projector_hidden_dim: 2048  # Larger for better vision-language alignment
+  audio_hidden_dim: 512
+
+  # LoRA configuration - Higher capacity for multimodal
+  lora:
+    r: 128         # Much higher rank for complex multimodal relationships
+    alpha: 256     # Higher alpha for better adaptation
+    dropout: 0.1   # Regularization for better generalization
+    target_modules:
+      - "q_proj"
+      - "v_proj"
+      - "k_proj"
+      - "o_proj"
+      - "gate_proj"
+      - "up_proj"
+      - "down_proj"
+
+  # Keep 4-bit quantization for memory efficiency
+  use_4bit: true
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_quant_type: "nf4"
+  use_nested_quant: false
+
+# Training Configuration - Optimized for Multimodal Quality
+training:
+  max_epochs: 15        # More epochs for better convergence
+  batch_size: 6         # Slightly smaller for stability
+  accumulate_grad_batches: 8  # Effective batch size = 6 * 8 = 48
+  gradient_clip_val: 1.0
+
+  # Better learning rate balance
+  lora_lr: 1e-3         # Higher for language adaptation
+  projector_lr: 5e-3    # Much higher for vision-language alignment
+  weight_decay: 0.01
+  warmup_ratio: 0.15    # More warmup for stable training
+
+  # Validation
+  val_check_interval: 0.33  # Check validation more frequently
+  limit_val_batches: 50
+
+  # Checkpointing
+  save_top_k: 5
+  monitor: "val/loss"
+  mode: "min"
+
+  # Precision and optimization
+  precision: "bf16-mixed"
+  strategy: "auto"
+
+  # Early stopping
+  patience: 5
+  min_delta: 0.0001
+
+# Data Configuration - Focus on quality
+data:
+  dataset_name: "liuhaotian/LLaVA-Instruct-150K"
+  cache_dir: "./data/cache"
+  num_workers: 6         # More workers for better data loading
+  pin_memory: true
+  persistent_workers: true
+
+  train_split: "train"
+  val_split: "train"
+  val_size: 0.05        # Larger validation set
+
+  max_length: 512
+  truncation: true
+  padding: true
+
+  image_size: 224
+  image_mean: [0.48145466, 0.4578275, 0.40821073]
+  image_std: [0.26862954, 0.26130258, 0.27577711]
+
+  augmentation:
+    enabled: true       # Enable augmentation for better generalization
+    random_resized_crop: 0.9
+    color_jitter: 0.2
+    horizontal_flip: 0.3
+
+  conversation:
+    system_message: ""
+    user_prefix: "Human: "
+    assistant_prefix: "Assistant: "
+    turn_separator: "\n"
+
+  filtering:
+    min_length: 20      # Filter very short conversations
+    max_length: 800     # Allow longer conversations
+    filter_empty_images: true
+    filter_corrupt_images: true
+
+  preprocessing:
+    cache_processed_data: true
+    precompute_image_features: false
+
+# Trainer settings
+trainer:
+  accelerator: "gpu"
+  devices: 1
+  num_nodes: 1
+  log_every_n_steps: 10
+  enable_checkpointing: true
+  enable_progress_bar: true
+  enable_model_summary: true
+
+  fast_dev_run: false
+  overfit_batches: 0
+  detect_anomaly: false
+
+  deterministic: false
+  benchmark: true
+
+# Optimization
+optimization:
+  compile_model: false
+  use_fused_adamw: true
+
+# Logging - Enable for monitoring
+logging:
+  use_wandb: true
+  wandb_project: "gemma-270m-multimodal-optimized"
+  wandb_name: "gemma-270m-llava-quality-training"
+  log_model: true
+
+  use_tensorboard: true
+  tb_log_dir: "logs/tensorboard"
+
+# Special tokens
+special_tokens:
+  image_token: "<image>"
+  audio_token: "<audio>"
+  pad_token: "<pad>"
+
+# Tokenizer settings
+tokenizer:
+  padding_side: "right"
+  truncation: true
+  max_length: 512
+  add_special_tokens: true

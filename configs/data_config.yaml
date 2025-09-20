@@ -1,0 +1,66 @@
+# Data Configuration
+data:
+  # Dataset settings - using more accessible multimodal dataset
+  dataset_name: "liuhaotian/LLaVA-Instruct-150K"
+  cache_dir: "./data/cache"
+  num_workers: 8  # Increased for faster loading
+  pin_memory: true
+  persistent_workers: true
+
+  # Data splits
+  train_split: "train"
+  val_split: "train"  # LLaVA doesn't have a separate val split
+  val_size: 0.02      # Use 2% of train data for validation
+
+  # Text processing - optimized for speed
+  max_length: 256     # Reduced from 512 for faster training
+  truncation: true
+  padding: true
+
+  # Speed optimizations
+  filter_long_conversations: true
+  max_conversation_turns: 6    # Limit to 6 turns (3 human + 3 assistant)
+  use_subset: false           # Set to true for quick testing
+  subset_size: 10000          # Use only 10K samples for testing
+  
+  # Image processing
+  image_size: 224
+  image_mean: [0.48145466, 0.4578275, 0.40821073]  # CLIP normalization
+  image_std: [0.26862954, 0.26130258, 0.27577711]
+  
+  # Data augmentation (for images)
+  augmentation:
+    enabled: false  # Start without augmentation
+    random_resized_crop: 0.9
+    color_jitter: 0.1
+    horizontal_flip: 0.5
+  
+  # Conversation formatting
+  conversation:
+    system_message: ""
+    user_prefix: "Human: "
+    assistant_prefix: "Assistant: "
+    turn_separator: "\n"
+    
+  # Data filtering - enhanced for speed
+  filtering:
+    min_length: 10      # Minimum text length
+    max_length: 800     # Reduced from 1000 for faster training
+    filter_empty_images: true
+    filter_corrupt_images: true
+    filter_long_conversations: true
+    max_tokens_per_sample: 256  # Skip samples that would exceed max_length
+    min_image_questions: 1      # Skip samples without image-related questions
+  
+  # Preprocessing
+  preprocessing:
+    cache_processed_data: true
+    precompute_image_features: false  # Set to true to cache CLIP features
+    
+# COCO Images
+coco:
+  base_url: "http://images.cocodataset.org/train2017/"
+  download_timeout: 30
+  retry_attempts: 3
+  fallback_image_size: [224, 224]
+  fallback_image_color: "white"

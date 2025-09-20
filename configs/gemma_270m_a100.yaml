@@ -1,0 +1,147 @@
+# Optimized configuration for Gemma-270M on A100 GPU
+# This configuration maximizes the potential of the smaller 270M model
+
+# Model Configuration
+model:
+  gemma_model_name: "google/gemma-3-270m"  # 270M parameter model
+  vision_model_name: "openai/clip-vit-large-patch14"
+  audio_model_name: "openai/whisper-small"
+  
+  enable_audio: false
+  projector_hidden_dim: 1024  # Optimized for 270M
+  audio_hidden_dim: 512
+  
+  # LoRA configuration - can be more aggressive with smaller model
+  lora:
+    r: 32          # Higher rank for 270M model
+    alpha: 64      # Higher alpha for better learning
+    dropout: 0.1
+    target_modules:
+      - "q_proj"
+      - "v_proj" 
+      - "k_proj"
+      - "o_proj"
+      - "gate_proj"
+      - "up_proj"
+      - "down_proj"
+  
+  # Quantization (optional for 270M - could train in full precision)
+  use_4bit: false      # 270M is small enough for full precision
+  bnb_4bit_compute_dtype: "bfloat16"
+  bnb_4bit_quant_type: "nf4"
+  use_nested_quant: false
+
+# Training Configuration - Optimized for A100 + 270M
+training:
+  max_epochs: 5        # More epochs for smaller model
+  batch_size: 16       # Large batch size for 270M on A100
+  accumulate_grad_batches: 2  # Effective batch size = 16 * 2 = 32
+  gradient_clip_val: 1.0
+  
+  # Learning rates - can be higher for smaller model
+  lora_lr: 5e-4        # Higher learning rate
+  projector_lr: 2e-3   # Higher learning rate
+  weight_decay: 0.01
+  warmup_ratio: 0.05   # More warmup
+  
+  # Validation
+  val_check_interval: 0.25  # Check more frequently
+  limit_val_batches: 50
+  
+  # Checkpointing
+  save_top_k: 5
+  monitor: "val/loss"
+  mode: "min"
+  
+  # Precision
+  precision: "bf16-mixed"  # A100 optimized
+  strategy: "auto"
+  
+  # Early stopping
+  patience: 3
+  min_delta: 0.0005
+
+# Data Configuration
+data:
+  dataset_name: "liuhaotian/LLaVA-Instruct-150K"
+  cache_dir: "./data/cache"
+  num_workers: 8       # More workers for A100
+  pin_memory: true
+  persistent_workers: true
+  
+  train_split: "train"
+  val_split: "train"
+  val_size: 0.02
+  
+  max_length: 512
+  truncation: true
+  padding: true
+  
+  image_size: 224
+  image_mean: [0.48145466, 0.4578275, 0.40821073]
+  image_std: [0.26862954, 0.26130258, 0.27577711]
+  
+  # No augmentation for initial training
+  augmentation:
+    enabled: false
+  
+  conversation:
+    system_message: ""
+    user_prefix: "Human: "
+    assistant_prefix: "Assistant: "
+    turn_separator: "\n"
+    
+  filtering:
+    min_length: 10
+    max_length: 1000
+    filter_empty_images: true
+    filter_corrupt_images: true
+  
+  preprocessing:
+    cache_processed_data: true
+    precompute_image_features: false
+
+# Trainer settings
+trainer:
+  accelerator: "gpu"
+  devices: 1
+  num_nodes: 1
+  log_every_n_steps: 25
+  enable_checkpointing: true
+  enable_progress_bar: true
+  enable_model_summary: true
+  
+  fast_dev_run: false
+  overfit_batches: 0
+  detect_anomaly: false
+  
+  deterministic: false
+  benchmark: true
+
+# Optimization
+optimization:
+  compile_model: true   # Enable for PyTorch 2.0+ speedup
+  use_fused_adamw: true
+
+# Logging
+logging:
+  use_wandb: true
+  wandb_project: "multimodal-gemma-270m"
+  wandb_name: "gemma-270m-llava-a100-optimized"
+  log_model: true
+  
+  use_tensorboard: true
+  tb_log_dir: "logs/tensorboard"
+
+# Special tokens
+special_tokens:
+  image_token: "<image>"
+  audio_token: "<audio>"
+  pad_token: "<pad>"
+
+# Tokenizer settings
+tokenizer:
+  padding_side: "right"
+  truncation: true
+  max_length: 512
+  add_special_tokens: true

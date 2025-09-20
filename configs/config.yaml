@@ -1,0 +1,12 @@
+# Main Hydra Configuration
+defaults:
+  - model_config
+  - training_config
+  - data_config
+
+# Override settings
+hydra:
+  run:
+    dir: ./logs/hydra/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  job:
+    name: multimodal_gemma_training

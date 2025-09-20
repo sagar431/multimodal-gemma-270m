@@ -1,0 +1,65 @@
+# Training Configuration
+training:
+  # Training hyperparameters - optimized for speed
+  max_epochs: 8         # Reduced epochs (shorter sequences = faster convergence)
+  batch_size: 16        # Increased batch size (shorter sequences = more GPU memory)
+  accumulate_grad_batches: 2  # Effective batch size = 16 * 2 = 32
+  gradient_clip_val: 1.0
+
+  # Learning rates - better balance for multimodal
+  lora_lr: 5e-4         # Higher for better adaptation
+  projector_lr: 2e-3    # Higher for vision-language alignment
+  weight_decay: 0.01
+  warmup_ratio: 0.1     # More warmup for stability
+  
+  # Validation
+  val_check_interval: 0.5  # Check validation every half epoch
+  limit_val_batches: 100   # Limit validation batches for speed
+  
+  # Checkpointing
+  save_top_k: 3
+  monitor: "val/loss"
+  mode: "min"
+  
+  # Precision and optimization
+  precision: "bf16-mixed"  # Use mixed precision for A100
+  strategy: "auto"  # Let Lightning choose the best strategy
+  
+  # Early stopping
+  patience: 2
+  min_delta: 0.001
+
+# Lightning Trainer settings
+trainer:
+  accelerator: "gpu"
+  devices: 1  # Single GPU training
+  num_nodes: 1
+  log_every_n_steps: 10
+  enable_checkpointing: true
+  enable_progress_bar: true
+  enable_model_summary: true
+  
+  # Debugging and profiling
+  fast_dev_run: false
+  overfit_batches: 0
+  detect_anomaly: false
+  
+  # Reproducibility
+  deterministic: false  # Set to true for reproducible results (slower)
+  benchmark: true       # Optimize for consistent input sizes
+
+# Optimization settings
+optimization:
+  compile_model: false  # Set to true for PyTorch 2.0+ compilation
+  use_fused_adamw: true # Use fused AdamW for better performance
+  
+# Logging and monitoring
+logging:
+  use_wandb: false  # Disable for now - needs API key
+  wandb_project: "multimodal-gemma"
+  wandb_name: "gemma-270m-llava-training"
+  log_model: false
+
+  # TensorBoard
+  use_tensorboard: true  # Use TensorBoard instead
+  tb_log_dir: "logs/tensorboard"
