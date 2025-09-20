@@ -1,5 +1,7 @@
 # Multimodal Gemma-270M: Vision-Language Model
 
+![Multimodal Gemma-270M](images/image1.png)
+
 A multimodal vision-language model based on Google's Gemma-270M, trained using the LLaVA architecture to understand and generate text responses about images.
 
 ## 🎯 Project Overview
