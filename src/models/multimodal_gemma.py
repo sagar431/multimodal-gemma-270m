@@ -172,18 +172,21 @@ class MultimodalGemma(nn.Module):
     def encode_images(self, images: torch.Tensor) -> torch.Tensor:
         """
         Encode images using CLIP and project to language space
-        
+
         Args:
             images: [batch_size, 3, height, width]
         Returns:
-            projected_features: [batch_size, language_dim]
+            projected_features: [batch_size, num_image_tokens, language_dim]
         """
         with torch.no_grad():
             vision_outputs = self.vision_encoder(pixel_values=images)
-            # Use the pooled output (CLS token equivalent)
-            image_features = vision_outputs.pooler_output
-        
+            # Use ALL patch tokens, not just CLS - this preserves spatial information
+            # last_hidden_state shape: [batch_size, num_patches + 1, vision_dim]
+            # We skip the CLS token (index 0) and use only patch tokens
+            image_features = vision_outputs.last_hidden_state[:, 1:, :]  # [batch, num_patches, 1024]
+
         # Project to language model space
+        # Output: [batch_size, num_patches, language_dim]
         projected_features = self.vision_projector(image_features)
         return projected_features
     
@@ -243,20 +246,23 @@ class MultimodalGemma(nn.Module):
         labels: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        Merge image features with text embeddings at <image> token positions
+        Merge image features with text embeddings by replacing <image> token
+        with multiple image patch tokens.
 
         Args:
             input_ids: [batch_size, seq_len]
-            image_features: [batch_size, language_dim]
+            image_features: [batch_size, num_image_tokens, language_dim]
             attention_mask: [batch_size, seq_len]
             labels: [batch_size, seq_len]
 
         Returns:
-            input_embeds: [batch_size, seq_len, hidden_size]
-            attention_mask: [batch_size, seq_len]
-            labels: [batch_size, seq_len]
+            input_embeds: [batch_size, new_seq_len, hidden_size]
+            attention_mask: [batch_size, new_seq_len]
+            labels: [batch_size, new_seq_len]
         """
         batch_size, seq_len = input_ids.shape
+        num_image_tokens = image_features.shape[1]
+        device = input_ids.device
 
         # Get text embeddings
         text_embeds = self.language_model.get_input_embeddings()(input_ids)
@@ -264,16 +270,55 @@ class MultimodalGemma(nn.Module):
         # Find positions of <image> tokens
         image_token_mask = (input_ids == self.image_token_id)
 
-        # Replace <image> token embeddings with projected image features
+        # Calculate new sequence length (replacing 1 <image> token with num_image_tokens)
+        # We assume one <image> token per sample
+        new_seq_len = seq_len - 1 + num_image_tokens
+
+        # Create new tensors for the expanded sequence
+        new_embeds = torch.zeros(batch_size, new_seq_len, text_embeds.shape[-1],
+                                  dtype=text_embeds.dtype, device=device)
+        new_attention_mask = torch.zeros(batch_size, new_seq_len,
+                                          dtype=attention_mask.dtype, device=device)
+        new_labels = torch.full((batch_size, new_seq_len), -100,
+                                 dtype=labels.dtype, device=device) if labels is not None else None
+
         for batch_idx in range(batch_size):
             image_positions = torch.where(image_token_mask[batch_idx])[0]
 
             if len(image_positions) > 0:
-                # Use the first <image> token position (assuming one image per sample)
-                img_pos = image_positions[0]
-                text_embeds[batch_idx, img_pos] = image_features[batch_idx]
+                img_pos = image_positions[0].item()
 
-        return text_embeds, attention_mask, labels
+                # Copy embeddings before <image> token
+                new_embeds[batch_idx, :img_pos] = text_embeds[batch_idx, :img_pos]
+
+                # Insert all image tokens
+                new_embeds[batch_idx, img_pos:img_pos + num_image_tokens] = image_features[batch_idx]
+
+                # Copy embeddings after <image> token
+                remaining_len = seq_len - img_pos - 1
+                new_embeds[batch_idx, img_pos + num_image_tokens:img_pos + num_image_tokens + remaining_len] = \
+                    text_embeds[batch_idx, img_pos + 1:img_pos + 1 + remaining_len]
+
+                # Handle attention mask
+                new_attention_mask[batch_idx, :img_pos] = attention_mask[batch_idx, :img_pos]
+                new_attention_mask[batch_idx, img_pos:img_pos + num_image_tokens] = 1  # Attend to image tokens
+                new_attention_mask[batch_idx, img_pos + num_image_tokens:img_pos + num_image_tokens + remaining_len] = \
+                    attention_mask[batch_idx, img_pos + 1:img_pos + 1 + remaining_len]
+
+                # Handle labels - mask image positions with -100 (ignore in loss)
+                if labels is not None:
+                    new_labels[batch_idx, :img_pos] = labels[batch_idx, :img_pos]
+                    # Image tokens are masked with -100 (already initialized)
+                    new_labels[batch_idx, img_pos + num_image_tokens:img_pos + num_image_tokens + remaining_len] = \
+                        labels[batch_idx, img_pos + 1:img_pos + 1 + remaining_len]
+            else:
+                # No image token found - just copy everything
+                new_embeds[batch_idx, :seq_len] = text_embeds[batch_idx]
+                new_attention_mask[batch_idx, :seq_len] = attention_mask[batch_idx]
+                if labels is not None:
+                    new_labels[batch_idx, :seq_len] = labels[batch_idx]
+
+        return new_embeds, new_attention_mask, new_labels
     
     def generate(
         self,

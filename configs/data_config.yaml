@@ -3,7 +3,7 @@ data:
   # Dataset settings - using more accessible multimodal dataset
   dataset_name: "liuhaotian/LLaVA-Instruct-150K"
   cache_dir: "./data/cache"
-  num_workers: 8  # Increased for faster loading
+  num_workers: 4  # Reduced to avoid memory issues with image loading
   pin_memory: true
   persistent_workers: true
 
@@ -12,8 +12,9 @@ data:
   val_split: "train"  # LLaVA doesn't have a separate val split
   val_size: 0.02      # Use 2% of train data for validation
 
-  # Text processing - optimized for speed
-  max_length: 256     # Reduced from 512 for faster training
+  # Text processing - needs room for 256 image tokens + text
+  # CLIP ViT-L/14 at 224x224 produces 256 patch tokens (14x14 + 1 CLS, we use 196 patches)
+  max_length: 128     # Text tokens only (image tokens added dynamically)
   truncation: true
   padding: true
 
@@ -45,11 +46,11 @@ data:
   # Data filtering - enhanced for speed
   filtering:
     min_length: 10      # Minimum text length
-    max_length: 800     # Reduced from 1000 for faster training
+    max_length: 400     # Text characters before tokenization
     filter_empty_images: true
     filter_corrupt_images: true
     filter_long_conversations: true
-    max_tokens_per_sample: 256  # Skip samples that would exceed max_length
+    max_tokens_per_sample: 128  # Text tokens only (image tokens added separately)
     min_image_questions: 1      # Skip samples without image-related questions
   
   # Preprocessing
