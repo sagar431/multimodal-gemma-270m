@@ -47,12 +47,8 @@ class LLaVADataset(Dataset):
         self.fallback_size = tuple(coco_config.get("fallback_image_size", [224, 224]))
         self.fallback_color = coco_config.get("fallback_image_color", "white")
         
-        # Load dataset
-        self._load_dataset()
-
-        # Apply filtering optimizations
-        if config["data"].get("filter_long_conversations", True):
-            self._filter_dataset()
+        # Load dataset (with caching of processed data)
+        self._load_dataset_with_cache()
 
         # Statistics
         self.successful_images = 0
@@ -60,6 +56,53 @@ class LLaVADataset(Dataset):
 
         logger.info(f"Initialized LLaVADataset with {len(self.dataset)} samples for split '{split}'")
     
+    def _load_dataset_with_cache(self):
+        """Load dataset with caching of processed/filtered data"""
+        data_config = self.config["data"]
+
+        # Generate cache key based on processing parameters
+        use_subset = data_config.get("use_subset", False)
+        subset_size = data_config.get("subset_size", 10000) if use_subset else "full"
+        filter_long = data_config.get("filter_long_conversations", True)
+        max_turns = data_config.get("max_conversation_turns", 6)
+
+        cache_key = f"processed_{subset_size}_filter{filter_long}_turns{max_turns}"
+        processed_cache_path = Path(self.cache_dir) / f"{cache_key}"
+
+        # Try to load from processed cache
+        if processed_cache_path.exists():
+            try:
+                from datasets import load_from_disk
+                self.dataset = load_from_disk(str(processed_cache_path))
+                logger.info(f"✅ Loaded cached processed dataset from {processed_cache_path}")
+                logger.info(f"   Dataset size: {len(self.dataset)} samples (no re-processing needed!)")
+                return
+            except Exception as e:
+                logger.warning(f"Failed to load cached dataset: {e}, will reprocess...")
+
+        # Load and process dataset
+        logger.info("Processing dataset (will be cached for future runs)...")
+        self._load_dataset()
+
+        # Apply subset
+        if use_subset:
+            actual_subset = min(data_config.get("subset_size", 10000), len(self.dataset))
+            self.dataset = self.dataset.select(range(actual_subset))
+            logger.info(f"Applied subset: {actual_subset} samples")
+
+        # Apply filtering
+        if filter_long:
+            self._filter_dataset()
+
+        # Save processed dataset to cache
+        try:
+            processed_cache_path.mkdir(parents=True, exist_ok=True)
+            self.dataset.save_to_disk(str(processed_cache_path))
+            logger.info(f"✅ Saved processed dataset to cache: {processed_cache_path}")
+            logger.info(f"   Future runs will load instantly!")
+        except Exception as e:
+            logger.warning(f"Failed to cache processed dataset: {e}")
+
     def _load_dataset(self):
         """Load the LLaVA dataset from HuggingFace"""
         dataset_name = self.config["data"]["dataset_name"]
@@ -247,13 +290,8 @@ class LLaVADataset(Dataset):
         original_size = len(self.dataset)
         filtered_indices = []
 
-        # Use subset for testing if enabled
-        if data_config.get("use_subset", False):
-            subset_size = data_config.get("subset_size", 10000)
-            indices = list(range(min(subset_size, original_size)))
-            logger.info(f"Using subset of {len(indices)} samples for testing")
-        else:
-            indices = list(range(original_size))
+        # Use all indices (subset already applied in __init__ if enabled)
+        indices = list(range(original_size))
 
         max_turns = data_config.get("max_conversation_turns", 6)
         max_tokens = filtering_config.get("max_tokens_per_sample", 256)

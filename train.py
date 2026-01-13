@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Dict, Any
 
 import torch
+# Enable Tensor Cores for faster matmul on A100/H100
+torch.set_float32_matmul_precision('high')
 import hydra
 from omegaconf import DictConfig, OmegaConf
 import lightning as L

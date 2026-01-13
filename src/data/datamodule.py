@@ -32,6 +32,7 @@ class LLaVADataModule(L.LightningDataModule):
         self.num_workers = data_config.get("num_workers", 4)
         self.pin_memory = data_config.get("pin_memory", True)
         self.persistent_workers = data_config.get("persistent_workers", True)
+        self.prefetch_factor = data_config.get("prefetch_factor", 2)  # Prefetch batches for speed
         
         # Dataset splits
         self.train_split = data_config.get("train_split", "train")
@@ -110,6 +111,7 @@ class LLaVADataModule(L.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             persistent_workers=self.persistent_workers and self.num_workers > 0,
+            prefetch_factor=self.prefetch_factor if self.num_workers > 0 else None,
             collate_fn=self.collator,
             drop_last=True  # Drop incomplete batches for consistent training
         )
@@ -126,6 +128,7 @@ class LLaVADataModule(L.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=self.pin_memory,
             persistent_workers=self.persistent_workers and self.num_workers > 0,
+            prefetch_factor=self.prefetch_factor if self.num_workers > 0 else None,
             collate_fn=self.collator,
             drop_last=False
         )

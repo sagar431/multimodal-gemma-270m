@@ -31,11 +31,11 @@ model:
   bnb_4bit_quant_type: "nf4"
   use_nested_quant: false
 
-# Training Configuration - Optimized for A100 + 270M
+# Training Configuration - Optimized for A100 40GB + 270M
 training:
   max_epochs: 5        # More epochs for smaller model
-  batch_size: 16       # Large batch size for 270M on A100
-  accumulate_grad_batches: 2  # Effective batch size = 16 * 2 = 32
+  batch_size: 12       # Balanced for A100 40GB with vision model
+  accumulate_grad_batches: 2  # Effective batch size = 12 * 2 = 24
   gradient_clip_val: 1.0
   
   # Learning rates - can be higher for smaller model
@@ -61,45 +61,66 @@ training:
   patience: 3
   min_delta: 0.0005
 
+  # Sample generation during training
+  sample_every_n_steps: 200
+
 # Data Configuration
 data:
   dataset_name: "liuhaotian/LLaVA-Instruct-150K"
   cache_dir: "./data/cache"
-  num_workers: 8       # More workers for A100
+  num_workers: 12      # More workers for faster data loading (A100 systems have many CPU cores)
   pin_memory: true
   persistent_workers: true
-  
+  prefetch_factor: 4   # Prefetch more batches
+
   train_split: "train"
   val_split: "train"
   val_size: 0.02
-  
-  max_length: 512
+
+  max_length: 256      # Reduced for memory efficiency
   truncation: true
   padding: true
-  
+
+  # Subset settings
+  use_subset: false
+  subset_size: 50000
+  filter_long_conversations: true
+  max_conversation_turns: 6
+
   image_size: 224
   image_mean: [0.48145466, 0.4578275, 0.40821073]
   image_std: [0.26862954, 0.26130258, 0.27577711]
-  
+
   # No augmentation for initial training
   augmentation:
     enabled: false
-  
+
   conversation:
     system_message: ""
     user_prefix: "Human: "
     assistant_prefix: "Assistant: "
     turn_separator: "\n"
-    
+
   filtering:
     min_length: 10
     max_length: 1000
     filter_empty_images: true
     filter_corrupt_images: true
-  
+    filter_long_conversations: true
+    max_tokens_per_sample: 128
+    min_image_questions: 1
+
   preprocessing:
     cache_processed_data: true
     precompute_image_features: false
+
+# COCO Images
+coco:
+  base_url: "http://images.cocodataset.org/train2017/"
+  download_timeout: 30
+  retry_attempts: 3
+  fallback_image_size: [224, 224]
+  fallback_image_color: "white"
 
 # Trainer settings
 trainer:
@@ -143,5 +164,5 @@ special_tokens:
 tokenizer:
   padding_side: "right"
   truncation: true
-  max_length: 512
+  max_length: 256
   add_special_tokens: true
