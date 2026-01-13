@@ -10,8 +10,15 @@ except ImportError:
     sys.exit(1)
 
 api = HfApi()
-username = os.environ.get('HF_USERNAME', 'your-username')
+username = os.environ.get('HF_USERNAME', '')
 space_name = os.environ.get('HF_SPACE_NAME', 'multimodal-gemma-270m')
+
+if not username:
+    print("ERROR: HF_USERNAME secret is not set!")
+    print("Please add HF_USERNAME to your GitHub repository secrets:")
+    print("  Repo → Settings → Secrets → Actions → New repository secret")
+    sys.exit(1)
+
 space_id = f'{username}/{space_name}'
 
 print(f'Deploying to: {space_id}')
