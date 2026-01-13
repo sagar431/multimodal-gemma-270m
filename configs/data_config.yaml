@@ -21,8 +21,8 @@ data:
   # Speed optimizations
   filter_long_conversations: true
   max_conversation_turns: 6    # Limit to 6 turns (3 human + 3 assistant)
-  use_subset: false           # Set to true for quick testing
-  subset_size: 10000          # Use only 10K samples for testing
+  use_subset: false           # Set to true for quick testing (use CLI override: data.use_subset=true)
+  subset_size: 50000          # Use 50K samples for subset training
   
   # Image processing
   image_size: 224

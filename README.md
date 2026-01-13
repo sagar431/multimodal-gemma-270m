@@ -203,6 +203,122 @@ python train.py training.max_epochs=10 training.projector_lr=1e-4
 python train.py experiment=my_experiment
 ```
 
+## 🖥️ Lambda Labs GPU Guide
+
+### GPU Selection for Training
+
+| GPU | VRAM | Batch Size | Time (50K, 3 epochs) | Cost/hr | Recommended For |
+|-----|------|------------|----------------------|---------|-----------------|
+| **A10** | 24 GB | 2-4 | ~4-5 hours | ~$0.75 | Budget training, testing |
+| **A100 (40GB)** | 40 GB | 4-8 | ~2-3 hours | ~$1.29 | **Best value** |
+| **A100 (80GB)** | 80 GB | 8-16 | ~1.5-2 hours | ~$1.99 | Faster training |
+| **H100** | 80 GB | 16-32 | ~45min-1 hour | ~$2.49 | Production, large scale |
+
+### Training Time Calculations
+
+**Dataset: LLaVA-Instruct-150K**
+
+| Subset Size | Steps/Epoch* | 3 Epochs | A100-40GB Time |
+|-------------|--------------|----------|----------------|
+| 10,000 | 312 | 936 | ~30-40 min |
+| 50,000 | 1,562 | 4,687 | ~2-3 hours |
+| 100,000 | 3,125 | 9,375 | ~4-5 hours |
+| 150,000 (full) | 4,687 | 14,062 | ~6-8 hours |
+
+*With effective batch size of 32 (batch_size=4 × accumulate_grad_batches=8)
+
+### Quick Start Commands
+
+```bash
+# Subset training (50K samples, 3 epochs) - RECOMMENDED FOR TESTING
+python train.py \
+  data.use_subset=true \
+  data.subset_size=50000 \
+  training.max_epochs=3 \
+  training.sample_every_n_steps=100 \
+  logging.use_wandb=false
+
+# Full dataset training (150K samples)
+python train.py \
+  data.use_subset=false \
+  training.max_epochs=3 \
+  logging.use_wandb=true
+
+# Quick validation run (10K samples, 1 epoch)
+python train.py \
+  data.use_subset=true \
+  data.subset_size=10000 \
+  training.max_epochs=1 \
+  training.sample_every_n_steps=50
+
+# A10 GPU (lower memory) - reduce batch size
+python train.py \
+  data.use_subset=true \
+  training.batch_size=2 \
+  training.accumulate_grad_batches=16
+
+# H100 GPU (more memory) - increase batch size
+python train.py \
+  data.use_subset=false \
+  training.batch_size=8 \
+  training.accumulate_grad_batches=4
+```
+
+### Lambda Labs Setup
+
+```bash
+# 1. SSH into your Lambda instance
+ssh ubuntu@<your-lambda-ip>
+
+# 2. Clone the repo
+git clone https://github.com/YOUR_USERNAME/multimodal-gemma-270m.git
+cd multimodal-gemma-270m
+
+# 3. Create virtual environment
+python -m venv .venv
+source .venv/bin/activate
+
+# 4. Install dependencies
+pip install -r requirements.txt
+
+# 5. Run training (50K subset example)
+python train.py \
+  data.use_subset=true \
+  data.subset_size=50000 \
+  training.max_epochs=3 \
+  logging.use_wandb=false
+
+# 6. Monitor GPU usage (in another terminal)
+watch -n 1 nvidia-smi
+```
+
+### Memory Optimization Tips
+
+If you run out of GPU memory:
+
+```bash
+# Reduce batch size
+python train.py training.batch_size=2
+
+# Enable gradient checkpointing (if supported)
+python train.py training.gradient_checkpointing=true
+
+# Use more aggressive quantization
+python train.py model.use_4bit=true
+
+# Reduce sequence length
+python train.py data.max_length=64
+```
+
+### Cost Estimation
+
+| Training Run | GPU | Duration | Est. Cost |
+|--------------|-----|----------|-----------|
+| Quick test (10K, 1 epoch) | A10 | ~15 min | ~$0.19 |
+| Subset (50K, 3 epochs) | A100-40GB | ~2.5 hr | ~$3.22 |
+| Full (150K, 3 epochs) | A100-40GB | ~7 hr | ~$9.03 |
+| Full (150K, 3 epochs) | H100 | ~3 hr | ~$7.47 |
+
 ## 🧪 Testing
 
 ```bash

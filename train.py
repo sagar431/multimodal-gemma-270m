@@ -227,10 +227,10 @@ def direct_main():
 
 
 if __name__ == "__main__":
-    # Check if we want to use Hydra or direct config loading
-    if "--config-path" in " ".join(os.sys.argv) or len(os.sys.argv) == 1:
-        # Use Hydra
-        hydra_main()
-    else:
-        # Use direct config loading
-        direct_main()
+    # Always use Hydra - it handles config overrides correctly
+    # Examples:
+    #   python train.py                           -> Uses default configs
+    #   python train.py data.use_subset=true      -> Overrides subset setting
+    #   python train.py training.max_epochs=5     -> Overrides epochs
+    #   python train.py +experiment=my_exp        -> Adds experiment config
+    hydra_main()
