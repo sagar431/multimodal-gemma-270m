@@ -31,7 +31,7 @@ model:
 tokenizer:
   padding_side: "right"
   truncation: true
-  max_length: 512
+  max_length: 128  # Text tokens only (256 image tokens added dynamically, total ~384)
   add_special_tokens: true
 
 # Special tokens

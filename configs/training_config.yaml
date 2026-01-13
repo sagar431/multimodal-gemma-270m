@@ -1,14 +1,14 @@
 # Training Configuration
 training:
-  # Training hyperparameters - optimized for speed
-  max_epochs: 8         # Reduced epochs (shorter sequences = faster convergence)
-  batch_size: 16        # Increased batch size (shorter sequences = more GPU memory)
-  accumulate_grad_batches: 2  # Effective batch size = 16 * 2 = 32
+  # Training hyperparameters - adjusted for longer sequences with 256 image tokens
+  max_epochs: 3         # Start with fewer epochs to validate fixes work
+  batch_size: 4         # Reduced due to longer sequences (256 image + text tokens)
+  accumulate_grad_batches: 8  # Effective batch size = 4 * 8 = 32
   gradient_clip_val: 1.0
 
   # Learning rates - better balance for multimodal
-  lora_lr: 5e-4         # Higher for better adaptation
-  projector_lr: 2e-3    # Higher for vision-language alignment
+  lora_lr: 2e-4         # Slightly lower for stability with more visual info
+  projector_lr: 1e-3    # Projector learns vision-language alignment
   weight_decay: 0.01
   warmup_ratio: 0.1     # More warmup for stability
   
