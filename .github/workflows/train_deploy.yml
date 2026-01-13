@@ -2,7 +2,7 @@ name: MLOps Pipeline - Test, Trace & Deploy Multimodal Gemma to HuggingFace
 
 # This pipeline runs on CPU-only GitHub Actions runners.
 # Training should be done LOCALLY on your GPU machine.
-# 
+#
 # Workflow:
 #   1. Train locally: python train.py (on GPU)
 #   2. Upload checkpoint to HuggingFace Hub or include in repo
@@ -16,6 +16,7 @@ on:
       - 'src/**'
       - 'configs/**'
       - 'hf_space/**'
+      - 'scripts/**'
       - '.github/workflows/**'
   pull_request:
     branches: [main]
@@ -42,25 +43,25 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      
+
       - name: Install UV
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      
+
       - name: Install dependencies
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           uv pip install --system pytest pytest-cov ruff
           uv pip install --system torch torchvision transformers accelerate peft lightning omegaconf
-      
+
       - name: Lint with ruff
         run: |
           ruff check src/ --ignore E501,F401 || echo "Linting warnings (non-blocking)"
-      
+
       - name: Run tests
         run: |
           pytest tests/ -v --tb=short || echo "Tests completed"
@@ -76,70 +77,46 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true  # For large checkpoint files
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      
+
       - name: Install UV
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      
+
       - name: Install dependencies
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           uv pip install --system torch torchvision transformers accelerate peft lightning
           uv pip install --system omegaconf pyyaml rich huggingface-hub gradio
-      
+
       - name: Login to HuggingFace
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          python -c "
-from huggingface_hub import login
-import os
-token = os.environ.get('HF_TOKEN')
-if token:
-    login(token=token)
-    print('✅ Logged in to HuggingFace!')
-else:
-    print('⚠️ HF_TOKEN not set')
-"
+          if [ -n "$HF_TOKEN" ]; then
+            python -c "from huggingface_hub import login; import os; login(token=os.environ['HF_TOKEN'])"
+            echo "Logged in to HuggingFace"
+          else
+            echo "HF_TOKEN not set"
+          fi
 
       - name: Download checkpoint from HuggingFace Hub (if available)
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_USERNAME: ${{ secrets.HF_USERNAME }}
         run: |
-          echo "📥 Attempting to download checkpoint from HuggingFace Hub..."
-          
-          python -c "
-from huggingface_hub import hf_hub_download, HfApi
-import os
-from pathlib import Path
-
-username = os.environ.get('HF_USERNAME', '')
-model_repo = f'{username}/multimodal-gemma-270m-checkpoints'
-
-try:
-    # Try to download from HF Hub
-    checkpoint_path = hf_hub_download(
-        repo_id=model_repo,
-        filename='final_model.ckpt',
-        local_dir='models/checkpoints/gemma-270m-llava-training'
-    )
-    print(f'✅ Downloaded checkpoint from {model_repo}')
-except Exception as e:
-    print(f'ℹ️ No checkpoint on HF Hub: {e}')
-    print('Will use dummy model for deployment demo')
-"
+          echo "Attempting to download checkpoint from HuggingFace Hub..."
+          python scripts/download_checkpoint.py
 
       - name: Export model for deployment
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          echo "🔧 Exporting model for deployment..."
-          
+          echo "Exporting model for deployment..."
+
           # Check if checkpoint exists locally (from git lfs or download)
           if [ -f "models/checkpoints/gemma-270m-llava-training/final_model.ckpt" ]; then
             echo "Using local checkpoint"
@@ -152,59 +129,25 @@ except Exception as e:
               --use_dummy \
               --output_path hf_space/model.pt
           fi
-          
-          echo "✅ Model exported!"
+
+          echo "Model exported!"
           ls -lh hf_space/
 
       - name: Deploy to HuggingFace Spaces
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_USERNAME: ${{ secrets.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ env.HF_SPACE_NAME }}
         run: |
-          echo "🚀 Deploying to HuggingFace Spaces..."
-          
-          python -c "
-from huggingface_hub import HfApi, upload_folder
-import os
-
-api = HfApi()
-username = os.environ.get('HF_USERNAME', 'your-username')
-space_name = '${{ env.HF_SPACE_NAME }}'
-space_id = f'{username}/{space_name}'
-
-print(f'📦 Deploying to: {space_id}')
-
-# Create space if it doesn't exist
-try:
-    api.create_repo(
-        repo_id=space_id,
-        repo_type='space',
-        space_sdk='gradio',
-        exist_ok=True
-    )
-    print(f'✅ Space {space_id} is ready!')
-except Exception as e:
-    print(f'Space creation note: {e}')
-
-# Upload all files from hf_space folder
-upload_folder(
-    folder_path='hf_space',
-    repo_id=space_id,
-    repo_type='space',
-    commit_message='🚀 Deploy Multimodal Gemma-270M via CI/CD'
-)
-print(f'')
-print(f'=========================================')
-print(f'✅ Deployed to https://huggingface.co/spaces/{space_id}')
-print(f'=========================================')
-"
+          echo "Deploying to HuggingFace Spaces..."
+          python scripts/deploy_to_hf.py
 
       - name: Deployment Summary
         env:
           HF_USERNAME: ${{ secrets.HF_USERNAME }}
         run: |
           echo "==========================================="
-          echo "🎉 Deployment Complete!"
+          echo "Deployment Complete!"
           echo "==========================================="
           echo "Space: https://huggingface.co/spaces/$HF_USERNAME/${{ env.HF_SPACE_NAME }}"
           echo "==========================================="
