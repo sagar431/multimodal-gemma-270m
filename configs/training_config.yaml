@@ -28,6 +28,10 @@ training:
   # Early stopping
   patience: 2
   min_delta: 0.001
+  
+  # Sample generation during training (for early diagnosis!)
+  # Generates sample outputs every N steps so you can SEE if model is learning
+  sample_every_n_steps: 200  # Generate samples every 200 steps (adjust as needed)
 
 # Lightning Trainer settings
 trainer:
@@ -55,11 +59,18 @@ optimization:
   
 # Logging and monitoring
 logging:
-  use_wandb: false  # Disable for now - needs API key
+  # Weights & Biases (recommended for visualization)
+  use_wandb: false  # Set to true and add WANDB_API_KEY
   wandb_project: "multimodal-gemma"
   wandb_name: "gemma-270m-llava-training"
   log_model: false
 
-  # TensorBoard
-  use_tensorboard: true  # Use TensorBoard instead
+  # TensorBoard (local visualization)
+  use_tensorboard: true
   tb_log_dir: "logs/tensorboard"
+  
+  # MLflow (optional - for experiment tracking)
+  use_mlflow: false
+  mlflow_tracking_uri: "logs/mlflow"
+  mlflow_experiment_name: "multimodal-gemma"
+

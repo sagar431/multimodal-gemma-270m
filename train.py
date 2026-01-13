@@ -62,6 +62,21 @@ def setup_callbacks(config: Dict[str, Any]) -> list:
     lr_monitor = LearningRateMonitor(logging_interval="step")
     callbacks.append(lr_monitor)
     
+    # Sample Generation Callback - generates samples every N steps to verify learning
+    # This helps diagnose if model is learning correctly EARLY (not after 5-6 hours!)
+    try:
+        from src.training.sample_callback import SampleGenerationCallback
+        sample_callback = SampleGenerationCallback(
+            every_n_steps=config.get("training", {}).get("sample_every_n_steps", 500),
+            log_dir="logs/samples",
+            max_new_tokens=100,
+            temperature=0.7
+        )
+        callbacks.append(sample_callback)
+        logger.info("✅ SampleGenerationCallback enabled - will generate samples during training")
+    except ImportError as e:
+        logger.warning(f"SampleGenerationCallback not available: {e}")
+    
     return callbacks
 
 

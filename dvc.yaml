@@ -1,0 +1,65 @@
+# DVC Pipeline Configuration
+# Defines the MLOps pipeline stages for data processing, training, and deployment
+
+stages:
+  # Stage 1: Prepare data
+  prepare_data:
+    cmd: python scripts/prepare_data.py
+    deps:
+      - scripts/prepare_data.py
+      - configs/data_config.yaml
+    outs:
+      - data/processed:
+          cache: true
+
+  # Stage 2: Train model
+  train:
+    cmd: >
+      python train.py 
+      training.max_epochs=3
+      logging.use_wandb=false
+    deps:
+      - train.py
+      - configs/config.yaml
+      - configs/model_config.yaml
+      - configs/training_config.yaml
+      - configs/data_config.yaml
+      - src/models/lightning_module.py
+      - src/models/multimodal_gemma.py
+      - src/data/datamodule.py
+    params:
+      - configs/training_config.yaml:
+          - training.max_epochs
+          - training.projector_lr
+          - training.lora_lr
+    outs:
+      - models/checkpoints:
+          cache: false
+    metrics:
+      - logs/metrics.json:
+          cache: false
+    plots:
+      - logs/plots:
+          cache: false
+
+  # Stage 3: Trace model for deployment
+  trace:
+    cmd: >
+      python src/trace_model.py 
+      --output_path hf_space/model.pt
+    deps:
+      - src/trace_model.py
+      - models/checkpoints
+    outs:
+      - hf_space/model.pt:
+          cache: false
+
+  # Stage 4: Validate traced model
+  validate:
+    cmd: python scripts/validate_model.py --model_path hf_space/model.pt
+    deps:
+      - scripts/validate_model.py
+      - hf_space/model.pt
+    metrics:
+      - validation_results.json:
+          cache: false

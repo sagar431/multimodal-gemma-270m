@@ -100,3 +100,28 @@ data/cache/images/
 
 # Config overrides
 local_configs/
+
+# DVC
+.dvc/
+*.dvc
+
+# Coverage
+.coverage
+htmlcov/
+coverage.xml
+
+# Testing
+.pytest_cache/
+.ruff_cache/
+
+# MLOps artifacts
+validation_results.json
+logs/metrics.json
+logs/plots/
+
+# HuggingFace Space model (tracked by DVC or downloaded)
+hf_space/model.pt
+hf_space/config.yaml
+
+# Pre-commit
+.pre-commit-config.yaml

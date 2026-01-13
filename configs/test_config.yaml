@@ -1,0 +1,39 @@
+# Test Model Configuration - Uses open models for testing without HF login
+# This is a simplified config that uses publicly available models
+
+model:
+  # Use Phi-2 as a test model (open, no login required)
+  gemma_model_name: "microsoft/phi-2"  # Alternative: "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+  vision_model_name: "openai/clip-vit-base-patch32"  # Smaller CLIP for faster testing
+
+  # Model settings
+  projector_hidden_dim: 2048
+  
+  # LoRA configuration - smaller for testing
+  lora:
+    r: 8
+    alpha: 16
+    dropout: 0.1
+    target_modules:
+      - "q_proj"
+      - "v_proj"
+      - "k_proj"
+      - "o_proj"
+  
+  # Quantization - disabled for testing
+  use_4bit: false
+  bnb_4bit_compute_dtype: "float16"
+  bnb_4bit_quant_type: "nf4"
+  use_nested_quant: false
+
+# Tokenizer settings
+tokenizer:
+  padding_side: "right"
+  truncation: true
+  max_length: 64
+  add_special_tokens: true
+
+# Special tokens
+special_tokens:
+  image_token: "<image>"
+  pad_token: "<pad>"
