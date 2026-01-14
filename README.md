@@ -1,10 +1,16 @@
 # Multimodal Gemma-270M MLOps Project
 
-[![Train & Deploy](https://github.com/sagar007/multimodal-gemma-270m/actions/workflows/train_deploy.yml/badge.svg)](https://github.com/sagar007/multimodal-gemma-270m/actions/workflows/train_deploy.yml)
+[![Train & Deploy](https://github.com/sagar431/multimodal-gemma-270m/actions/workflows/train_deploy.yml/badge.svg)](https://github.com/sagar431/multimodal-gemma-270m/actions/workflows/train_deploy.yml)
 [![HuggingFace Space](https://img.shields.io/badge/🤗-HuggingFace%20Space-yellow)](https://huggingface.co/spaces/sagar007/Multimodal-Gemma)
 [![Model](https://img.shields.io/badge/🤗-Model%20Checkpoint-blue)](https://huggingface.co/sagar007/multimodal-gemma-270m-checkpoints)
 
 A production-ready **Multimodal Vision-Language Model** built with PyTorch Lightning and automated MLOps CI/CD pipeline for deployment to HuggingFace Spaces.
+
+## 🖼️ Live Demo
+
+![HuggingFace Space Demo](images/hf_space_demo.png)
+
+*Live interactive demo running on HuggingFace Spaces (ZeroGPU)*
 
 ## 📊 Benchmark Results
 
