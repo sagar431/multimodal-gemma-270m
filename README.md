@@ -1,9 +1,41 @@
 # Multimodal Gemma-270M MLOps Project
 
-[![Train & Deploy](https://github.com/YOUR_USERNAME/multimodal-gemma-270m/actions/workflows/train_deploy.yml/badge.svg)](https://github.com/YOUR_USERNAME/multimodal-gemma-270m/actions/workflows/train_deploy.yml)
-[![HuggingFace Space](https://img.shields.io/badge/🤗-HuggingFace%20Space-yellow)](https://huggingface.co/spaces/YOUR_USERNAME/multimodal-gemma-270m)
+[![Train & Deploy](https://github.com/sagar007/multimodal-gemma-270m/actions/workflows/train_deploy.yml/badge.svg)](https://github.com/sagar007/multimodal-gemma-270m/actions/workflows/train_deploy.yml)
+[![HuggingFace Space](https://img.shields.io/badge/🤗-HuggingFace%20Space-yellow)](https://huggingface.co/spaces/sagar007/Multimodal-Gemma)
+[![Model](https://img.shields.io/badge/🤗-Model%20Checkpoint-blue)](https://huggingface.co/sagar007/multimodal-gemma-270m-checkpoints)
 
 A production-ready **Multimodal Vision-Language Model** built with PyTorch Lightning and automated MLOps CI/CD pipeline for deployment to HuggingFace Spaces.
+
+## 📊 Benchmark Results
+
+Evaluation on local test images (9 samples):
+
+| Benchmark | Score | Details |
+|-----------|-------|---------|
+| **Basic VQA** | **53.8%** | 7/13 questions correct |
+| **POPE Hallucination** | **4.0%** | Yes-bias issue (common in small models) |
+
+### VQA Performance Breakdown
+
+| Task | Accuracy | Notes |
+|------|----------|-------|
+| Animal identification | ✅ High | Cat/dog detection works well |
+| Room identification | ✅ Good | Kitchen, living room |
+| Object presence (yes/no with context) | ✅ Good | "Is there a window?" |
+| Color identification | ⚠️ Moderate | Sometimes misses |
+| Detailed attributes | ⚠️ Weak | Needs more training |
+
+### Training Configuration
+
+| Parameter | Value |
+|-----------|-------|
+| Base Model | google/gemma-3-270m |
+| Vision Encoder | openai/clip-vit-large-patch14 |
+| Training Samples | 50,000 (LLaVA subset) |
+| Epochs | 5 |
+| Trainable Parameters | 7.6M (2.75% of total) |
+| GPU | NVIDIA A100 40GB |
+| Training Time | ~4 hours |
 
 ## 🌟 Features
 
@@ -319,7 +351,9 @@ python train.py data.max_length=64
 | Full (150K, 3 epochs) | A100-40GB | ~7 hr | ~$9.03 |
 | Full (150K, 3 epochs) | H100 | ~3 hr | ~$7.47 |
 
-## 🧪 Testing
+## 🧪 Testing & Evaluation
+
+### Unit Tests
 
 ```bash
 # Run all tests
@@ -331,6 +365,36 @@ pytest tests/ -v --cov=src --cov-report=html
 # Or use make
 make test
 make test-cov
+```
+
+### Model Evaluation (Benchmarks)
+
+```bash
+# Run VQA and hallucination evaluation
+cd multimodal-gemma-270m
+source .venv/bin/activate
+python evaluate.py
+
+# With custom checkpoint
+python evaluate.py path/to/your/checkpoint.ckpt
+```
+
+The evaluation script runs:
+1. **Basic VQA**: Tests object/room identification, yes/no questions
+2. **POPE-like Hallucination Test**: Checks if model hallucinates objects
+
+### Inference on Custom Images
+
+```bash
+# Run inference on a folder of images
+python inference.py \
+  --checkpoint models/checkpoints/gemma-270m-llava-a100-optimized/final_model.ckpt \
+  --input-dir samples/test_images \
+  --output-dir samples/inference_results
+
+# Local Gradio app for interactive testing
+python app_local.py
+# Then open http://localhost:7860
 ```
 
 ## 🐳 Docker
