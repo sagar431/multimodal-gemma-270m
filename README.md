@@ -12,6 +12,8 @@ A production-ready **Multimodal Vision-Language Model** built with PyTorch Light
 
 *Live interactive demo running on HuggingFace Spaces (ZeroGPU)*
 
+### 🎮 [Click here to play with the Demo!](https://huggingface.co/spaces/sagar007/Multimodal-Gemma)
+
 ## 📊 Benchmark Results
 
 Evaluation on local test images (9 samples):
