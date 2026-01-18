@@ -19,8 +19,8 @@ data:
   padding: true
 
   # Speed optimizations
-  filter_long_conversations: true
-  max_conversation_turns: 6    # Limit to 6 turns (3 human + 3 assistant)
+  filter_long_conversations: false  # DISABLED for full training
+  max_conversation_turns: 20   # Allow longer conversations
   use_subset: false           # Set to true for quick testing (use CLI override: data.use_subset=true)
   subset_size: 50000          # Use 50K samples for subset training
   
@@ -43,15 +43,15 @@ data:
     assistant_prefix: "Assistant: "
     turn_separator: "\n"
     
-  # Data filtering - enhanced for speed
+  # Data filtering - relaxed for full training
   filtering:
-    min_length: 10      # Minimum text length
-    max_length: 400     # Text characters before tokenization
+    min_length: 5       # Minimum text length
+    max_length: 2000    # Text characters before tokenization (increased)
     filter_empty_images: true
     filter_corrupt_images: true
-    filter_long_conversations: true
-    max_tokens_per_sample: 128  # Text tokens only (image tokens added separately)
-    min_image_questions: 1      # Skip samples without image-related questions
+    filter_long_conversations: false  # DISABLED for full training
+    max_tokens_per_sample: 512  # Increased for full dataset
+    min_image_questions: 0      # DISABLED - don't skip samples
   
   # Preprocessing
   preprocessing:

@@ -20,7 +20,7 @@ from lightning.pytorch.callbacks import (
     LearningRateMonitor,
     RichProgressBar
 )
-from lightning.pytorch.loggers import WandbLogger, TensorBoardLogger
+from lightning.pytorch.loggers import WandbLogger, TensorBoardLogger, MLFlowLogger
 
 # Import our modules
 from src.models import MultimodalGemmaLightning
@@ -103,6 +103,17 @@ def setup_loggers(config: Dict[str, Any]) -> list:
             name=config["logging"]["wandb_name"]
         )
         loggers.append(tb_logger)
+    
+    # MLflow Logger
+    if config["logging"].get("use_mlflow", False):
+        mlflow_logger = MLFlowLogger(
+            experiment_name=config["logging"].get("mlflow_experiment_name", "multimodal-gemma"),
+            tracking_uri=config["logging"].get("mlflow_tracking_uri", "logs/mlflow"),
+            run_name=config["logging"]["wandb_name"],
+            log_model=True
+        )
+        loggers.append(mlflow_logger)
+        logger.info(f"✅ MLflow logging enabled - tracking URI: {config['logging'].get('mlflow_tracking_uri', 'logs/mlflow')}")
     
     return loggers
 

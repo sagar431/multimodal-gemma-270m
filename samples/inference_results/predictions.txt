@@ -1,0 +1,73 @@
+================================================================================
+MULTIMODAL GEMMA INFERENCE RESULTS
+================================================================================
+
+Image: sample_001.jpg
+Prompt: What do you see in this image?
+Prediction:  The image features two cats lying down on a couch, with one sitting on the left side of the couch, and the other on the right side. They are resting comfortably, with one of the cats closer to the left side of the couch and the other towards the right side.
+
+There are a couple of remote controls placed on the couch, one on the left side and the other on the right side. The remote controls seem to be used by the cats as well, as one of them is placed on the left side of the couch and the other one is on the right side. This scene captures a cozy moment between the two cats enjoying their time on the couch. The couch is positioned in the center of the image, and the two cats
+--------------------------------------------------------------------------------
+
+Image: sample_002.jpg
+Prompt: What do you see in this image?
+Prediction:  The image features a close-up view of a donut sitting in a plastic bag on a table. The donut is placed between two bananas, creating a visually appealing contrast. The bananas appear to be a mix of chocolate and banana slices, giving the impression that they are a fruit snack.
+
+In addition to the donuts, there are also two apples in the scene, one positioned closer to the donuts and the other slightly farther away. The combination of these two items creates a playful and appetizing presentation. The arrangement of the donuts and bananas creates a close-up view of a delicious snack. The scene captures the essence of a snack-like treat, with the donuts and the bananas creating a delightful contrast.
+
+The image also includes a knife and a spoon
+--------------------------------------------------------------------------------
+
+Image: sample_003.jpg
+Prompt: What do you see in this image?
+Prediction:  The image captures a modern, spacious kitchen and living room area with yellow walls and wood floors. The kitchen features a dining table, a refrigerator, and a microwave. A large window is present, allowing natural light to fill the room. 
+
+There are several chairs arranged around the dining table, with some positioned closer to the window and others further back. The kitchen also has an island, which adds to the spacious feel of the room. 
+
+A woman is standing in the kitchen, likely attending to the guests or preparing food. The living area is further enhanced by a potted plant situated on the right side of the room, adding a touch of greenery to the space. The overall ambiance of the kitchen and living room area is inviting and comfortable,
+--------------------------------------------------------------------------------
+
+Image: sample_004.jpg
+Prompt: What do you see in this image?
+Prediction:  The image showcases a clean and spacious kitchen with wooden cabinets, white appliances, and a dining table. The kitchen is equipped with various appliances, including a refrigerator, an oven, and a microwave. A toaster and a bowl can also be seen on the counter. 
+
+On the dining table, there are several oranges arranged in a bowl, creating an inviting and refreshing atmosphere. A potted plant is placed in the room, adding a touch of greenery to the space. Additionally, there is a vase with an orange on it, adding a touch of color and freshness to the room. The kitchen is well-equipped with essential appliances, a well-organized arrangement, and a welcoming ambiance. Overall, the scene depicts a functional and inviting kitchen space.
+
+
+--------------------------------------------------------------------------------
+
+Image: sample_005.jpg
+Prompt: What do you see in this image?
+Prediction:  The image features a lively scene at a skate park, where multiple skateboarders are practicing their tricks and maneuvers. Two people are prominently riding skateboards on a ramp, while others can be seen watching and enjoying the action. 
+
+There are several other skateboarders in the park, including a few close to the ramps and others scattered throughout the area. Some skateboards are placed on the ground, while others are visible in the air, indicating the activity taking place at the skate park.
+
+In addition to the skateboarders, there is a bicycle parked near the center of the scene. A bench is also visible at the edge of the park, providing a place to rest for those who wish to sit and watch the action. The atmosphere is energetic and
+--------------------------------------------------------------------------------
+
+Image: sample_006.jpg
+Prompt: What do you see in this image?
+Prediction:  The image depicts a family sitting together in a dimly lit restaurant setting. Three people, two men and a boy, are seated at a dining table, enjoying their meal together. One person appears to be eating a piece of pizza.
+
+The dining area is furnished with a couple of chairs, a cup, and a fork placed on the table. The atmosphere seems cozy and inviting as the family enjoys their time together. The table is filled with various utensils, such as a knife and a spoon, as well as a bowl. The overall scene suggests a relaxed and intimate dining experience for the family.
+
+There are other people present in the background, possibly engaged in conversation or observing the meal. The setting appears to be a family gathering, as the adults
+--------------------------------------------------------------------------------
+
+Image: sample_007.png
+Prompt: What do you see in this image?
+Prediction:  The image features a beautiful golden retriever sitting on a grassy field in a park. The dog is holding its tongue, seemingly in a playful mood. There are several other people in the park, enjoying the outdoor setting. Some of them are standing or walking, while others seem to be resting or socializing. The dog's position on the grass contrasts with the people and creates a pleasant atmosphere in the park. The scene captures a sense of relaxation and leisure time spent by the people in the park. The golden retriever is the main focus of the scene, drawing the viewer's attention to its endearing presence. The park provides a perfect environment for people to take in the scenery, socialize, and appreciate the beauty of the surrounding environment. The presence of multiple
+--------------------------------------------------------------------------------
+
+Image: sample_008.png
+Prompt: What do you see in this image?
+Prediction:  The image features a wooden dining table with an apple placed in the center. The apple is ripe and ready to be eaten, sitting on top of the table. The table is surrounded by various chairs, with one chair positioned to the left of the apple and two more chairs placed towards the right. 
+
+There is also a potted plant situated on the left side of the table, adding a touch of greenery to the scene. The overall atmosphere suggests a pleasant and inviting setting for enjoying a meal or simply spending time at home. The combination of the freshly picked fruit and the potted plant creates a warm and inviting ambiance. The apple on the table and the potted plant contribute to the overall beauty and simplicity of the scene. The table is set up for someone
+--------------------------------------------------------------------------------
+
+Image: sample_009.png
+Prompt: What do you see in this image?
+Prediction:  The image features a cozy couch with a white cat sleeping on it. The couch is located in a room with blue and black pillows, providing a comfortable and inviting atmosphere. The cat is resting comfortably on the couch, while the room also has a window and a potted plant nearby, adding a touch of natural elements to the space. The scene conveys a sense of tranquility and relaxation, as the cat enjoys its nap. The overall image showcases the calming effect of a comfortable spot for a pet to rest. The presence of the couch and blue pillows adds to the inviting and cozy ambiance of the room. The cat appears to be sleeping peacefully in its own home. The scene is a perfect representation of a pet-friendly living space. The blue couch adds a
+--------------------------------------------------------------------------------
+
