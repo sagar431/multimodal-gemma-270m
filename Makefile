@@ -18,6 +18,12 @@ help:
 	@echo "  make train-fast    Quick test run (fast_dev_run)"
 	@echo "  make train-1epoch  Train for 1 epoch only"
 	@echo ""
+	@echo "Frontend (No-Code Platform):"
+	@echo "  make frontend         Start full platform (backend + frontend)"
+	@echo "  make frontend-backend Start backend API only"
+	@echo "  make frontend-dev     Start frontend only"
+	@echo "  make frontend-install Install frontend dependencies"
+	@echo ""
 	@echo "Deployment:"
 	@echo "  make trace         Export model for deployment"
 	@echo "  make deploy        Deploy to HuggingFace Spaces"
@@ -140,6 +146,24 @@ clean-all: clean
 	rm -rf models/checkpoints/*
 	rm -rf data/cache data/processed
 	rm -rf hf_space/model.pt
+
+# ============== Frontend (No-Code Training Platform) ==============
+frontend:
+	@echo "🌐 Starting Multimodal Training Platform..."
+	cd frontend && ./start.sh
+
+frontend-backend:
+	@echo "🔧 Starting backend API only..."
+	cd frontend/backend && pip install -r requirements.txt && python main.py
+
+frontend-dev:
+	@echo "⚛️  Starting frontend only..."
+	cd frontend && npm install && npm run dev
+
+frontend-install:
+	@echo "📦 Installing frontend dependencies..."
+	cd frontend && npm install
+	cd frontend/backend && pip install -r requirements.txt
 
 # ============== Docker ==============
 docker-build:
